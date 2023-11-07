@@ -2,143 +2,132 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function App() {
-  const [veiculos, setVeiculos] = useState([]);
-  const [modeloInput, setModeloInput] = useState('');
-  const [montadoraInput, setMontadoraInput] = useState('');
-  const [placaInput, setPlacaInput] = useState('');
-  const [anoInput, setAnoInput] = useState('');
-  
+  const [alunos, setAlunos] = useState([]);
+  const [novoAluno, setNovoAluno] = useState({
+    rg: '',
+    numCelular: '',
+    email: '',
+    dataNasc: '',
+    nome: '',
+    idmatricula: '',
+  });
+
   useEffect(() => {
-    fetchVeiculos();
+    fetchAlunos();
   }, []);
 
-  const fetchVeiculos = async () => {
-  try {
-    const response = await axios.get('http://localhost:8090/veiculos');
-    setVeiculos(response.data);
-  } catch (error) {
-    console.error('Erro ao buscar veículos:', error);
-  }
-};
-
-
-const handleSubmit = async (event) => {
-  event.preventDefault();
-  try {
-    let novoVeiculo = {
-      placa: placaInput,
-      montadora: montadoraInput,
-      modelo: modeloInput,
-      ano: anoInput,
+  const fetchAlunos = async () => {
+    try {
+      const response = await axios.get('http://localhost:8090/aluno');
+      setAlunos(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar alunos:', error);
     }
-    await axios.post('http://localhost:8090/veiculos', novoVeiculo);
-    fetchVeiculos();
-    setPlacaInput('');
-    setMontadoraInput('');
-    setModeloInput('');
-    setAnoInput('');
+  };
 
-  } catch (error) {
-    console.error('Erro ao criar veículo:', error);
-  }
-};
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      await axios.post('http://localhost:8090/aluno', novoAluno);
+      fetchAlunos();
+      setNovoAluno({
+        rg: '',
+        numCelular: '',
+        email: '',
+        dataNasc: '',
+        nome: '',
+        idmatricula: '',
+      });
+    } catch (error) {
+      console.error('Erro ao criar aluno:', error);
+    }
+  };
 
+  const handleDelete = async (rg) => {
+    try {
+      await axios.delete(`http://localhost:8090/aluno/${rg}`);
+      fetchAlunos();
+    } catch (error) {
+      console.error('Erro ao excluir aluno:', error);
+    }
+  };
 
-const handleDelete = async (id) => {
-  try {
-    await axios.delete(`http://localhost:8090/veiculos/${id}`);
-    fetchVeiculos();
-  } catch (error) {
-    console.error('Erro ao excluir veículo:', error);
-  }
-};
+  return (
+    <div>
+      {/* Cabeçalho */}
+      <h1>Gerenciamento de Alunos</h1>
 
-const handleUpdate = async (id, veiculoAtualizado) => {
-  try {
-    await axios.put(`http://localhost:8090/veiculos/${id}`, veiculoAtualizado);
-    fetchVeiculos();
-  } catch (error) {
-    console.error('Erro ao atualizar veículo:', error);
-  }
-};
+      {/* Formulário de adição de aluno */}
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="rg"
+          placeholder="RG"
+          value={novoAluno.rg}
+          onChange={(event) =>
+            setNovoAluno({ ...novoAluno, rg: event.target.value })
+          }
+        />
+        <input
+          type="text"
+          name="numCelular"
+          placeholder="Número de Celular"
+          value={novoAluno.numCelular}
+          onChange={(event) =>
+            setNovoAluno({ ...novoAluno, numCelular: event.target.value })
+          }
+        />
+        <input
+          type="text"
+          name="email"
+          placeholder="Email"
+          value={novoAluno.email}
+          onChange={(event) =>
+            setNovoAluno({ ...novoAluno, email: event.target.value })
+          }
+        />
+        <input
+          type="text"
+          name="dataNasc"
+          placeholder="Data de Nascimento"
+          value={novoAluno.dataNasc}
+          onChange={(event) =>
+            setNovoAluno({ ...novoAluno, dataNasc: event.target.value })
+          }
+        />
+        <input
+          type="text"
+          name="nome"
+          placeholder="Nome"
+          value={novoAluno.nome}
+          onChange={(event) =>
+            setNovoAluno({ ...novoAluno, nome: event.target.value })
+          }
+        />
+        <input
+          type="text"
+          name="idmatricula"
+          placeholder="ID de Matrícula"
+          value={novoAluno.idmatricula}
+          onChange={(event) =>
+            setNovoAluno({ ...novoAluno, idmatricula: event.target.value })
+          }
+        />
+        <button type="submit">Adicionar Aluno</button>
+      </form>
 
-return (
-  <div>
-    {/* Cabeçalho */}
-    <h1>Gerenciamento de Veículos</h1>
+      {/* Lista de alunos */}
+      <ul>
+        {alunos.map((aluno) => (
+          <li key={aluno.rg}>
+            {aluno.rg} - {aluno.nome} ({aluno.dataNasc})
 
-    {/* Formulário de adição de veículo */}
-    <form onSubmit={handleSubmit}>
-      {/* Campo para a placa */}
-      <input
-        type="text"
-        name="placa"
-        placeholder="Placa"
-        value={placaInput}
-        onChange={(event) => setPlacaInput(event.target.value)}
-      />
-      {/* Campo para a montadora */}
-      <input
-        type="text"
-        name="montadora"
-        placeholder="Montadora"
-        value={montadoraInput}
-        onChange={(event) => setMontadoraInput(event.target.value)}
-      />
-      {/* Campo para o modelo */}
-      <input
-        type="text"
-        name="modeloInput"
-        placeholder="Modelo"
-        value={modeloInput}
-        onChange={(event) => setModeloInput(event.target.value)}
-      />
+            <button onClick={() => handleDelete(aluno.rg)}>Excluir</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
-
-      {/* Campo para o ano */}
-      <input
-        type="number"
-        name="ano"
-        placeholder="Ano"
-        value={anoInput}
-        onChange={(event) => setAnoInput(event.target.value)}
-      />
-      {/* Botão de envio do formulário */}
-      <button type="submit">Adicionar Veículo</button>
-    </form>
-
-    {/* Lista de veículos */}
-    <ul>
-      {/* Mapeamento dos veículos */}
-      {veiculos.map((veiculo) => (
-        <li key={veiculo.id}>
-          {/* Exibição dos detalhes do veículo */}
-          {veiculo.placa} - {veiculo.montadora} {veiculo.modelo} ({veiculo.ano})
-
-          {/* Botão de exclusão */}
-          <button onClick={() => handleDelete(veiculo.id)}>Excluir</button>
-
-          {/* Botão de atualização */}
-          <button
-            onClick={() =>
-              handleUpdate(veiculo.id, {
-                ...veiculo,
-                modelo: modeloInput !== '' ? modeloInput : veiculo.modelo,
-                montadora: montadoraInput !== '' ? montadoraInput : veiculo.montadora,
-                ano: anoInput !== '' ? anoInput : veiculo.ano,
-                placa: placaInput !== '' ? placaInput : veiculo.placa,
-              })
-            }
-          >
-            Atualizar
-          </button>
-
-        </li>
-      ))}
-    </ul>
-  </div>
-);
-
-
-  }
-  export default App;
+export default App;
